@@ -10,8 +10,13 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 
 HANDLE = "@PHONE-BOOT-H"
-WEEKS = 26
+WEEKS = 26  # 잔디 주 수. 늘리면 카드 폭이 따라 늘어남.
 PROJECTS = os.path.expanduser("~/.claude/projects/*/*.jsonl")
+
+GRASS_X = 366  # 잔디 시작 x
+PITCH = 13  # 칸 간격
+WIDTH = GRASS_X + WEEKS * PITCH + 20
+HEIGHT = 230
 
 # $/1M tokens (input, output). 접두사 매칭, 긴 것부터.
 PRICES = [
@@ -142,15 +147,17 @@ def render(total, daily, today):
 
     squares = []
     for wx, wy, level in grass_cells(daily, today):
-        x = 366 + wx * 13
-        y = 96 + wy * 13
+        x = GRASS_X + wx * PITCH
+        y = 96 + wy * PITCH
         squares.append(
             f'<rect x="{x}" y="{y}" width="10" height="10" rx="2" '
             f'fill="{LEVEL_FILL[level]}"/>'
         )
 
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="720" height="230" \
-viewBox="0 0 720 230" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
+    right = WIDTH - 26
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" \
+height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" \
+font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
 <style>
   .ttl {{ fill:#f0883e; font-size:15px; font-weight:700; letter-spacing:.5px }}
   .head {{ fill:#7d8590; font-size:10px; letter-spacing:2px }}
@@ -160,14 +167,14 @@ viewBox="0 0 720 230" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
   .sub {{ fill:#7d8590; font-size:11px }}
   .meta {{ fill:#7d8590; font-size:10px }}
 </style>
-<rect width="720" height="230" rx="10" fill="#010409"/>
-<rect x="4" y="4" width="712" height="222" rx="8" fill="#0d1117"
+<rect width="{WIDTH}" height="{HEIGHT}" rx="10" fill="#010409"/>
+<rect x="4" y="4" width="{WIDTH - 8}" height="{HEIGHT - 8}" rx="8" fill="#0d1117"
       stroke="#f0883e" stroke-width="1.5"/>
 <text x="26" y="42" class="ttl">⚡ AI Usage</text>
-<text x="694" y="38" class="meta" text-anchor="end">{HANDLE}</text>
-<text x="694" y="54" class="meta" text-anchor="end">\
+<text x="{right}" y="38" class="meta" text-anchor="end">{HANDLE}</text>
+<text x="{right}" y="54" class="meta" text-anchor="end">\
 API-equivalent · {today.isoformat()}</text>
-<line x1="26" y1="62" x2="694" y2="62" stroke="#21262d"/>
+<line x1="26" y1="62" x2="{right}" y2="62" stroke="#21262d"/>
 
 <text x="26" y="86" class="head">ALL-TIME</text>
 <text x="26" y="142" class="big">{human(tokens)}</text>
@@ -176,7 +183,7 @@ API-equivalent · {today.isoformat()}</text>
 <text x="196" y="86" class="head">COST</text>
 {chr(10).join(rows)}
 
-<text x="366" y="86" class="head">GRASS - LAST {WEEKS} WEEKS</text>
+<text x="{GRASS_X}" y="86" class="head">GRASS - LAST {WEEKS} WEEKS</text>
 {chr(10).join(squares)}
 </svg>
 """
