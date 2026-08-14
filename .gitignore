@@ -1,0 +1,7 @@
+.env
+data/
+outputs/
+__pycache__/
+*.csv
+.venv/
+node_modules/
